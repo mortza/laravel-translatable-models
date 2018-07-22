@@ -46,6 +46,7 @@ trait Translatable
      */
     public function getTranslationFor($attr, $lang, $fall_back = 'en')
     {
+        echo 'call getTranslationFor';
         // boot function, check various conditions
         $this->translatableGetBoot($attr, $lang, $fall_back);
         if ($this->translationExist($attr, $lang)) {
@@ -67,26 +68,30 @@ trait Translatable
     private function translationExist($attr, $lang)
     {
         // determines if $this->{$attr} has key named $lang
-        return in_array($this->{$attr}, $lang);
+        $keys = array_keys($this->{$attr});
+        return in_array($lang, $keys);
     }
 
     private function translatableGetBoot($attr, $lang, &$fall_back)
     {
+        echo 'call translatableGetBoot';
         // check data types
         $this->checkDataType($attr, $lang, $fall_back);
         if (!$this->checkPropExist($attr))
             throw \Exception('Attribute not found on model or not listed on $trans_attributes');
         $this->setFallBack($fall_back);
+        echo "setFallBack {$fall_back}";
     }
 
     private function checkPropExist($attr)
     {
         $keys = array_keys($this->attributes);
-        return in_array($keys, $attr) && in_array($this->trans_attributes, $attr);
+        return in_array($attr, $keys) && in_array($attr, $this->trans_attributes);
     }
 
     private function checkDataType($attr, $lang, $fall_back)
     {
+        echo 'call checkDataType';
         // check if $attr is string
         if (!is_string($attr))
             throw \Exception('$attr should be string');
@@ -99,6 +104,7 @@ trait Translatable
         // check if $this->attr is array
         if (!is_array($this->{$attr}))
             throw \Exception("$attr should be array, maybe you forgot to add it to \$casts");
+        echo 'checkDataType fine\n';
     }
 
     /**
