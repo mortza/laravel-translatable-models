@@ -47,7 +47,7 @@ trait Translatable
     public function getTranslationFor($attr, $lang, $fall_back = 'en')
     {
         // boot function, check various conditions
-        $this->translatableBoot($attr, $lang, $fall_back);
+        $this->translatableGetBoot($attr, $lang, $fall_back);
         if ($this->translationExist($attr, $lang)) {
             // simply return value from array :)
             return $this->{$attr}[$lang];
@@ -70,12 +70,12 @@ trait Translatable
         return in_array($this->{$attr}, $lang);
     }
 
-    private function translatableBoot($attr, $lang, &$fall_back)
+    private function translatableGetBoot($attr, $lang, &$fall_back)
     {
-        if (!$this->checkPropExist($attr))
-            throw \Exception('Attribute not found on model or not listed on $trans_attributes');
         // check data types
         $this->checkDataType($attr, $lang, $fall_back);
+        if (!$this->checkPropExist($attr))
+            throw \Exception('Attribute not found on model or not listed on $trans_attributes');
         $this->setFallBack($fall_back);
     }
 
@@ -91,10 +91,10 @@ trait Translatable
             throw \Exception('$attr should be string');
         // check if $lang is string
         if (!is_string($lang))
-            throw \Exception('$attr should be string');
+            throw \Exception('$ang should be string');
         // check if $fall_back is string
         if (!is_string($fall_back))
-            throw \Exception('$attr should be string');
+            throw \Exception('$fall_back should be string');
         // check if $this->attr is array
         if (!is_array($this->{$attr}))
             throw \Exception("$attr should be array, maybe you forgot to add it to \$casts");
@@ -110,6 +110,22 @@ trait Translatable
      */
     public function setTranslationFor($attr, $lang, $value)
     {
+        $this->translatableSetBoot($attr, $lang);
+        // if pass above step then [assign/update] [new/existing] translation
+        $this->{$attr}[$lang] = $value;
+    }
 
+    private function translatableSetBoot($attr, $lang)
+    {
+        // check if $attr is string
+        if (!is_string($attr))
+            throw \Exception('$attr should be string');
+        // check if $lang is string
+        if (!is_string($lang))
+            throw \Exception('$lang should be string');
+        // check if $this->attr is array
+        if (!is_array($this->{$attr}))
+            throw \Exception("$attr should be array, maybe you forgot to add it to \$casts");
+        $this->checkPropExist($attr);
     }
 }
