@@ -1,0 +1,23 @@
+{
+    "name": "mortza/laravel-translatable-models",
+    "description": "Simple trait that provide translation for models in laravel.",
+    "keywords": ["model", "translation", "laravel"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Morteza Allahpour",
+            "email": "mortezaallahpour@outlook.com"
+        }
+    ],
+    "type": "project",
+    "require": {
+		"php": ">=7.1"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Mortza\\Translatable\\": "src/"
+        }
+    }
+}
