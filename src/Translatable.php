@@ -31,38 +31,33 @@ namespace Mortza\Translatable;
  */
 trait Translatable
 {
+    protected $fall_back_lang;
+    protected $trans_attributes;
+
     /**
      * to get translation for attribute `$attr` on model call this method
      * by default fallback language is `en` if you want to override it
      * you can pass third parameter `$fall_back`. of course its cumbersome to define
      * fallback for each call so you can define `protected $fall_back_lang;` so this
-     * function ignore third parameter. remember that model fall_back language has
-     * higher priority than this argument.
+     * function ignore third parameter. remember that model fall_back_lang language has
+     * lower priority than this argument.
      *
      * @param string $attr
      * @param string $lang
      * @param string $fall_back
      * @return string
      */
-    public function getTranslationFor($attr, $lang, $fall_back = 'en')
+    public function getTranslationFor(string $attr, string $lang, string $fall_back = null)
     {
-        echo 'call getTranslationFor';
         // boot function, check various conditions
-        $this->translatableGetBoot($attr, $lang, $fall_back);
+        $this->translatableBoot($attr, $lang);
+        $fall_back = is_null($fall_back) ? $this->fall_back_lang : $fall_back;
         if ($this->translationExist($attr, $lang)) {
-            // simply return value from array :)
-            return $this->{$attr}[$lang];
+            return parent::getAttributeValue($attr)[$lang];
         } else if ($this->translationExist($attr, $fall_back)) {
             // return fall_back translation
-            return $this->{$attr}[$fall_back];
+            return parent::getAttributeValue($attr)[$fall_back];
         }
-    }
-
-    private function setFallBack(&$fall_back)
-    {
-        // if model defined fall_back property we use it, unless use function argument
-        if (property_exists($this, "fall_back"))
-            $fall_back = $this->fall_back;
     }
 
     private function translationExist($attr, $lang)
@@ -72,39 +67,10 @@ trait Translatable
         return in_array($lang, $keys);
     }
 
-    private function translatableGetBoot($attr, $lang, &$fall_back)
+    private function translatableBoot($attr)
     {
-        echo 'call translatableGetBoot';
-        // check data types
-        $this->checkDataType($attr, $lang, $fall_back);
-        if (!$this->checkPropExist($attr))
-            throw \Exception('Attribute not found on model or not listed on $trans_attributes');
-        $this->setFallBack($fall_back);
-        echo "setFallBack {$fall_back}";
-    }
-
-    private function checkPropExist($attr)
-    {
-        $keys = array_keys($this->attributes);
-        return in_array($attr, $keys) && in_array($attr, $this->trans_attributes);
-    }
-
-    private function checkDataType($attr, $lang, $fall_back)
-    {
-        echo 'call checkDataType';
-        // check if $attr is string
-        if (!is_string($attr))
-            throw \Exception('$attr should be string');
-        // check if $lang is string
-        if (!is_string($lang))
-            throw \Exception('$ang should be string');
-        // check if $fall_back is string
-        if (!is_string($fall_back))
-            throw \Exception('$fall_back should be string');
-        // check if $this->attr is array
-        if (!is_array($this->{$attr}))
-            throw \Exception("$attr should be array, maybe you forgot to add it to \$casts");
-        echo 'checkDataType fine\n';
+        if (!$this->isTranslatable($attr))
+            throw \Exception("$attr is not a translatable property. consider add it to \$trans_attributes");
     }
 
     /**
@@ -115,11 +81,11 @@ trait Translatable
      * @param string $lang
      * @param string $value
      */
-    public function setTranslationFor($attr, $lang, $value)
+    public function setTranslationFor(string $attr, string $lang, $value)
     {
-        $this->translatableSetBoot($attr, $lang);
+        $this->translatableBoot($attr);
         // if pass above step then [assign/update] [new/existing] translation
-        $this->{$attr}[$lang] = $value;
+        parent::getAttributeValue($attr)[$lang] = $value;
     }
 
     /**
@@ -128,7 +94,7 @@ trait Translatable
      * @param string $attr
      * @return bool
      */
-    public function isTranslatable($attr)
+    public function isTranslatable(string $attr)
     {
         return in_array($attr, $this->trans_attributes);
     }
@@ -139,26 +105,35 @@ trait Translatable
      * @param string $attr
      * @return array
      */
-    public function getAvailableTranslations($attr)
+    public function availableTranslationsFor(string $attr)
     {
         if ($this->isTranslatable($attr)) {
-            $keys = array_keys($this->{$attr});
+            $keys = array_keys(parent::getAttributeValue($attr));
             return $keys;
         } else
             throw \Exception("$attr is not translatable.");
     }
 
-    private function translatableSetBoot($attr, $lang)
+    /**
+     * alias for $this->availableTranslationsFor
+     *
+     * @param string $attr
+     * @return array
+     */
+    public function translations(string $attr)
     {
-        // check if $attr is string
-        if (!is_string($attr))
-            throw \Exception('$attr should be string');
-        // check if $lang is string
-        if (!is_string($lang))
-            throw \Exception('$lang should be string');
-        // check if $this->attr is array
-        if (!is_array($this->{$attr}))
-            throw \Exception("$attr should be array, maybe you forgot to add it to \$casts");
-        $this->checkPropExist($attr);
+        return $this->availableTranslationsFor($attr);
+    }
+
+    /**
+     * alias for $this->setTranslationFor
+     *
+     * @param string $attr
+     * @param string $lang
+     * @param $value
+     */
+    public function translate(string $attr, string $lang, $value)
+    {
+        return $this->setTranslationFor($attr, $lang, $value);
     }
 }
