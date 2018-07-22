@@ -122,6 +122,32 @@ trait Translatable
         $this->{$attr}[$lang] = $value;
     }
 
+    /**
+     * determine if a attribute is translatable or not
+     *
+     * @param string $attr
+     * @return bool
+     */
+    public function isTranslatable($attr)
+    {
+        return in_array($attr, $this->trans_attributes);
+    }
+
+    /**
+     * return a array contains all available translation keys (language codes)
+     *
+     * @param string $attr
+     * @return array
+     */
+    public function getAvailableTranslations($attr)
+    {
+        if ($this->isTranslatable($attr)) {
+            $keys = array_keys($this->{$attr});
+            return $keys;
+        } else
+            throw \Exception("$attr is not translatable.");
+    }
+
     private function translatableSetBoot($attr, $lang)
     {
         // check if $attr is string
