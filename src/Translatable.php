@@ -81,7 +81,8 @@ trait Translatable
 
     private function checkPropExist($attr)
     {
-        return property_exists($this, $attr) && in_array($this->trans_attributes, $attr);
+        $keys = array_keys($this->attributes);
+        return in_array($keys, $attr) && in_array($this->trans_attributes, $attr);
     }
 
     private function checkDataType($attr, $lang, $fall_back)
