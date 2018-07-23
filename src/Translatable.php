@@ -136,4 +136,27 @@ trait Translatable
     {
         return $this->setTranslationFor($attr, $lang, $value);
     }
+
+    /**
+     * remove translation for specific $lang on $attr
+     *
+     * @param string $attr
+     * @param string $lang
+     */
+    public function removeTranslationFor(string $attr, string $lang)
+    {
+        $this->translatableBoot($attr);
+        if ($this->translationExist($attr, $lang))
+            unset(parent::getAttributeValue($attr)[$lang]);
+    }
+
+    /**
+     * removes all translations for $lang in $this->trans_attributes
+     * @param string $lang
+     */
+    public function removeAllTranslations(string $lang)
+    {
+        foreach ($this->trans_attributes as $key => $value)
+            $this->removeTranslationFor($value, $lang);
+    }
 }
