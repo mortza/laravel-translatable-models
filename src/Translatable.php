@@ -1,6 +1,7 @@
 <?php
 
 namespace Mortza\Translatable;
+use Illuminate\Support\Str;
 
 /**
  * Trait Translatable
@@ -31,9 +32,6 @@ namespace Mortza\Translatable;
  */
 trait Translatable
 {
-    protected $fall_back_lang;
-    protected $trans_attributes;
-
     /**
      * to get translation for attribute `$attr` on model call this method
      * by default fallback language is `en` if you want to override it
@@ -146,8 +144,12 @@ trait Translatable
     public function removeTranslationFor(string $attr, string $lang)
     {
         $this->translatableBoot($attr);
-        if ($this->translationExist($attr, $lang))
-            unset(parent::getAttributeValue($attr)[$lang]);
+
+        if ($this->translationExist($attr, $lang)) {
+            $temp = parent::getAttribute($attr);
+            unset($temp[$lang]);
+            parent::setAttribute($attr, $temp);
+        }
     }
 
     /**
