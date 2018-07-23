@@ -1,6 +1,7 @@
 <?php
 
 namespace Mortza\Translatable;
+
 use Illuminate\Support\Str;
 
 /**
@@ -160,5 +161,14 @@ trait Translatable
     {
         foreach ($this->trans_attributes as $key => $value)
             $this->removeTranslationFor($value, $lang);
+    }
+
+    public function getAttribute($key)
+    {
+        // if attribute listed on trans_attributes return translation for current locale
+        if (in_array($key, $this->trans_attributes))
+            return $this->getTranslationFor($key, app()->getLocale());
+        else
+            return parent::getAttribute($key);
     }
 }
