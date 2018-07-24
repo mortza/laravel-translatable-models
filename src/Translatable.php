@@ -1,7 +1,6 @@
 <?php
 
 namespace Mortza\Translatable;
-
 use Illuminate\Support\Str;
 
 /**
@@ -31,8 +30,7 @@ use Illuminate\Support\Str;
  * @package Mortza\Translatable
  *
  */
-trait Translatable
-{
+trait Translatable {
     /**
      * to get translation for attribute `$attr` on model call this method
      * by default fallback language is `en` if you want to override it
@@ -46,8 +44,7 @@ trait Translatable
      * @param string $fall_back
      * @return string
      */
-    public function getTranslationFor(string $attr, string $lang, string $fall_back = null)
-    {
+    public function getTranslationFor(string $attr, string $lang, string $fall_back = null) {
         // boot function, check various conditions
         $this->translatableBoot($attr, $lang);
         $fall_back = is_null($fall_back) ? $this->fall_back_lang : $fall_back;
@@ -59,17 +56,17 @@ trait Translatable
         }
     }
 
-    private function translationExist($attr, $lang)
-    {
+    private function translationExist($attr, $lang) {
         // determines if $this->{$attr} has key named $lang
         $keys = array_keys($this->{$attr});
         return in_array($lang, $keys);
     }
 
-    private function translatableBoot($attr)
-    {
-        if (!$this->isTranslatable($attr))
+    private function translatableBoot($attr) {
+        if (!$this->isTranslatable($attr)) {
             throw \Exception("$attr is not a translatable property. consider add it to \$trans_attributes");
+        }
+
     }
 
     /**
@@ -80,11 +77,13 @@ trait Translatable
      * @param string $lang
      * @param string $value
      */
-    public function setTranslationFor(string $attr, string $lang, $value)
-    {
+    public function setTranslationFor(string $attr, string $lang, $value) {
         $this->translatableBoot($attr);
+
         // if pass above step then [assign/update] [new/existing] translation
-        parent::getAttributeValue($attr)[$lang] = $value;
+        $temp = parent::getAttribute($attr);
+        $temp[$lang] = $value;
+        parent::setAttribute($attr, $temp);
     }
 
     /**
@@ -93,8 +92,7 @@ trait Translatable
      * @param string $attr
      * @return bool
      */
-    public function isTranslatable(string $attr)
-    {
+    public function isTranslatable(string $attr) {
         return in_array($attr, $this->trans_attributes);
     }
 
@@ -104,13 +102,14 @@ trait Translatable
      * @param string $attr
      * @return array
      */
-    public function availableTranslationsFor(string $attr)
-    {
+    public function availableTranslationsFor(string $attr) {
         if ($this->isTranslatable($attr)) {
             $keys = array_keys(parent::getAttributeValue($attr));
             return $keys;
-        } else
+        } else {
             throw \Exception("$attr is not translatable.");
+        }
+
     }
 
     /**
@@ -119,8 +118,7 @@ trait Translatable
      * @param string $attr
      * @return array
      */
-    public function translations(string $attr)
-    {
+    public function translations(string $attr) {
         return $this->availableTranslationsFor($attr);
     }
 
@@ -131,8 +129,7 @@ trait Translatable
      * @param string $lang
      * @param $value
      */
-    public function translate(string $attr, string $lang, $value)
-    {
+    public function translate(string $attr, string $lang, $value) {
         return $this->setTranslationFor($attr, $lang, $value);
     }
 
@@ -142,8 +139,7 @@ trait Translatable
      * @param string $attr
      * @param string $lang
      */
-    public function removeTranslationFor(string $attr, string $lang)
-    {
+    public function removeTranslationFor(string $attr, string $lang) {
         $this->translatableBoot($attr);
 
         if ($this->translationExist($attr, $lang)) {
@@ -157,18 +153,10 @@ trait Translatable
      * removes all translations for $lang in $this->trans_attributes
      * @param string $lang
      */
-    public function removeAllTranslations(string $lang)
-    {
-        foreach ($this->trans_attributes as $key => $value)
+    public function removeAllTranslations(string $lang) {
+        foreach ($this->trans_attributes as $key => $value) {
             $this->removeTranslationFor($value, $lang);
-    }
+        }
 
-    public function getAttribute($key)
-    {
-        // if attribute listed on trans_attributes return translation for current locale
-        if (in_array($key, $this->trans_attributes))
-            return $this->getTranslationFor($key, app()->getLocale());
-        else
-            return parent::getAttribute($key);
     }
 }
