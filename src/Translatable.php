@@ -1,7 +1,6 @@
 <?php
 
 namespace Mortza\Translatable;
-use Illuminate\Support\Str;
 
 /**
  * Trait Translatable
@@ -46,9 +45,11 @@ trait Translatable {
      */
     public function getTranslationFor(string $attr, string $lang, string $fall_back = null) {
         // boot function, check various conditions
-        $this->translatableBoot($attr, $lang);
         $fall_back = is_null($fall_back) ? $this->fall_back_lang : $fall_back;
-        if ($this->translationExist($attr, $lang)) {
+        // if property is not translatable return it normally
+        if (!$this->isTranslatable($attr)) {
+            return parent::getAttributeValue($attr);
+        } else if ($this->translationExist($attr, $lang)) {
             return parent::getAttributeValue($attr)[$lang];
         } else if ($this->translationExist($attr, $fall_back)) {
             // return fall_back translation
@@ -58,7 +59,7 @@ trait Translatable {
 
     private function translationExist($attr, $lang) {
         // determines if $this->{$attr} has key named $lang
-        $keys = array_keys($this->{$attr});
+        $keys = array_keys(parent::getAttribute($attr));
         return in_array($lang, $keys);
     }
 
@@ -78,12 +79,14 @@ trait Translatable {
      * @param string $value
      */
     public function setTranslationFor(string $attr, string $lang, $value) {
-        $this->translatableBoot($attr);
-
-        // if pass above step then [assign/update] [new/existing] translation
-        $temp = parent::getAttribute($attr);
-        $temp[$lang] = $value;
-        parent::setAttribute($attr, $temp);
+        if (!$this->isTranslatable($attr)) {
+            parent::setAttribute($attr, $value);
+        } else {
+            // if pass above step then [assign/update] [new/existing] translation
+            $temp = parent::getAttribute($attr);
+            $temp[$lang] = $value;
+            parent::setAttribute($attr, $temp);
+        }
     }
 
     /**
@@ -93,7 +96,12 @@ trait Translatable {
      * @return bool
      */
     public function isTranslatable(string $attr) {
-        return in_array($attr, $this->trans_attributes);
+        if (is_null($this->trans_attributes)) {
+            return false;
+        } else {
+            return in_array($attr, $this->trans_attributes);
+        }
+
     }
 
     /**
@@ -123,14 +131,21 @@ trait Translatable {
     }
 
     /**
-     * alias for $this->setTranslationFor
+     * if third parameter not passed to function its alias for return $this->getTranslationFor($attr, $lang);
+     * unless its alias for return $this->setTranslationFor($attr, $lang, $value);
      *
      * @param string $attr
      * @param string $lang
      * @param $value
+     * @return string
      */
-    public function translate(string $attr, string $lang, $value) {
-        return $this->setTranslationFor($attr, $lang, $value);
+    public function translate(string $attr, string $lang, $value = null) {
+        if (is_null($value)) {
+            return $this->getTranslationFor($attr, $lang);
+        } else {
+            $this->setTranslationFor($attr, $lang, $value);
+        }
+
     }
 
     /**
